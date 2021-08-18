@@ -7,8 +7,15 @@ from urls.errors import *
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
-mail = Mail(app)
 auth = HTTPBasicAuth()
+
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'tt1411509@gmail.com'
+app.config['MAIL_PASSWORD'] = 'test@test@123'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 
 
 @auth.verify_password
@@ -40,8 +47,8 @@ class ModifyProject(Resource):
         try:
             body = request.get_json(force=True)
             proj = Project(**body).save()
-            id1 = proj.id
-            return {'id': str(id1)}, 200
+            response = proj.id
+            return {'id': str(response)}, 200
         except Exception as e:
             raise NotAnAdminError("Project Id already exists!")
 
@@ -130,8 +137,15 @@ class UpdateAdmin(Resource):
 
 
 class ProjectCollab(Resource):
-    def get(self):
-        msg = Message("Hello", sender="ankita.aditya20@gmail.com", recipients=["ankita.aditya@draup.com"])
-        msg.body = "This is the email body"
+    def post(self):
+        try:
+            body = request.get_json(force=True)
+            proj_collab = Collab(**body)
+            proj_collab.save()
+        except Exception as e:
+            raise "Project does not exists!"
+        msg = Message('Project Collab', sender='tt1411509@gmail.com', recipients=[body["admin_email"]])
+        msg.body = "Hello sir/ma'am, I would like to collaborate with you in the mentioned project.\n" + str(
+            body["project_id"]) + str(body["project_name"]) + "\nThank You!"
         mail.send(msg)
-        return "Sent!"
+        return "Email Sent to admin regarding project collaboration!", 200
