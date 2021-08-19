@@ -37,7 +37,7 @@ class GetAllProjects(Resource):
         return Response(proj, mimetype="application/json", status=200)
 
 
-class ModifyProject(Resource):
+class AddProject(Resource):
     def get(self):
         proj = Project.objects().to_json()
         return Response(proj, mimetype="application/json", status=200)
@@ -50,15 +50,17 @@ class ModifyProject(Resource):
             response = proj.id
             return {'id': str(response)}, 200
         except Exception as e:
-            raise NotAnAdminError("Project Id already exists!")
+            raise ProjectModificationError("Project Id already exists!")
 
+
+class DeleteAndUpdateProject(Resource):
     @auth.login_required()
     def delete(self, id):
         try:
             proj = Project.objects.get(projectid=id).delete()
             return "Project Deleted Successfully!", 200
         except Exception as e:
-            raise NotAnAdminError("Project Id not found!")
+            raise ProjectModificationError("Project Id not found!")
 
     @auth.login_required()
     def put(self, id):
@@ -67,7 +69,7 @@ class ModifyProject(Resource):
             Project.objects.get(projectid=id).update(**body)
             return "Project Details Updated", 200
         except Exception as e:
-            raise NotAnAdminError("Project can't be found for updation!")
+            raise ProjectModificationError("Project can't be found for updation!")
 
 
 class UserDetails(Resource):
@@ -133,19 +135,18 @@ class UpdateAdmin(Resource):
             Admin.objects.get(admid=id).update(**body)
             return 'Admin Details Updated Successfully!', 200
         except Exception as E:
-            raise UnauthorizedError("Admin doesnot Exist!")
+            raise UnauthorizedError("Admin does not Exist!")
 
 
 class ProjectCollab(Resource):
     def post(self):
+        body = request.get_json(force=True)
+        proj_collab = Collab(**body)
+        proj_collab.save()
         try:
-            body = request.get_json(force=True)
-            proj_collab = Collab(**body)
-            proj_collab.save()
+            msg = Message('Project Collab', sender='tt1411509@gmail.com', recipients=[body["admin_email"]])
+            msg.body = "Hello sir/ma'am, I would like to collaborate with you in the mentioned project.\n" + str(body["project_id"]) + str(body["project_name"]) + "\nThank You!"
+            mail.send(msg)
+            return "Email Sent to admin regarding project collaboration!", 200
         except Exception as e:
-            raise "Project does not exists!"
-        msg = Message('Project Collab', sender='tt1411509@gmail.com', recipients=[body["admin_email"]])
-        msg.body = "Hello sir/ma'am, I would like to collaborate with you in the mentioned project.\n" + str(
-            body["project_id"]) + str(body["project_name"]) + "\nThank You!"
-        mail.send(msg)
-        return "Email Sent to admin regarding project collaboration!", 200
+            raise InternalServerError("Mail not sent!")

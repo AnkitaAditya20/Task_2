@@ -45,9 +45,9 @@ class User(db.Document):
 
 class Collab(db.Document):
     collab_id = db.IntField(required=True, unique=True)
-    admin_id = db.IntField(required=True, unique=True)
-    admin_email = db.EmailField(required=True, unique=True)
-    project_id = db.IntField(required=True, unique=True)
+    admin_id = db.IntField(required=True)
+    admin_email = db.EmailField(required=True)
+    project_id = db.IntField(required=True)
     project_name = db.StringField(required=True)
     date_of_joining = db.DateTimeField(default=datetime.datetime.now())
     reason = db.StringField()
