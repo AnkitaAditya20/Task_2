@@ -21,7 +21,15 @@ class UnauthorizedError(Exception):
 
 class NotAnAdminError(Exception):
     pass
+
+class ProjectModificationError(Exception):
+    pass
+
 errors = {
+    "ProjectModificationError": {
+        "message": "Something went wrong",
+        "status": 500
+    },
     "InternalServerError": {
         "message": "Something went wrong",
         "status": 500
